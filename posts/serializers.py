@@ -35,8 +35,8 @@ class PostSerializer(serializers.ModelSerializer):
             'updated_at',
             'title',
             'content',
-            'image'
+            'image',
             'is_owner',
             'profile_id',
-            'profile_image'
+            'profile_image',
         ]
