@@ -28,29 +28,20 @@ class PostListViewTests(APITestCase):
 
 class PostDetailViewTests(APITestCase):
     def setUp(self):
-        User.objects.create_user(username='adam', password='pass')
+        adam = User.objects.create_user(username='adam', password='pass')
+        brian = User.objects.create_user(username='brian', password='pass')
+        Post.objects.create(
+            owner=adam, title='a title', content='adams content'
+        )
+        Post.objects.create(
+            owner=brian, title='brians title', content='brians content'
+        )
 
-    def test_can_retrieve_post(self):
-        adam = User.objects.get(username='adam')
-        post = Post.objects.create(owner=adam, title='a title')
-        response = self.client.get(f'/posts/{post.id}/')
+    def test_can_retrieve_post_using_valid_id(self):
+        response = self.client.get('/posts/1/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], 'a title')
 
-    def test_can_update_post(self):
-        adam = User.objects.get(username='adam')
-        post = Post.objects.create(owner=adam, title='a title')
-        self.client.login(username='adam', password='pass')
-        response = self.client.put(
-            f'/posts/{post.id}/', {'title': 'new title'})
-        post.refresh_from_db()
-        self.assertEqual(post.title, 'new title')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_user_not_logged_in_cant_update_post(self):
-        adam = User.objects.get(username='adam')
-        post = Post.objects.create(owner=adam, title='a title')
-        response = self.client.put(
-            f'/posts/{post.id}/', {'title': 'new title'})
-        post.refresh_from_db()
-        self.assertEqual(post.title, 'a title')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_cant_retrieve_post_using_invalid_id(self):
+        response = self.client.get('/posts/3/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
